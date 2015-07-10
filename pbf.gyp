@@ -48,5 +48,15 @@
           "./test/include/"
       ]
     }
+    {
+      "target_name": "read_pbf",
+      "type": "executable",
+      "sources": [
+        "./bin/read_pbf.cpp"
+      ],
+      "include_dirs": [
+        "./"
+      ]
+    }
   ]
 }

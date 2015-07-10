@@ -35,6 +35,9 @@ HPP_FILES := pbf_reader.hpp pbf_writer.hpp pbf_common.hpp
 
 all: ./test/run_all_tests
 
+./bin/read-pbf: ./bin/read-pbf.cpp $(HPP_FILES)
+	$(CXX) -I. $(CXXFLAGS) $(COMMON_FLAGS) $(RELEASE_FLAGS) ./bin/read-pbf.cpp -o ./bin/read-pbf
+
 ./test/t/%/runtest.o: test/t/%/runtest.cpp $(HPP_FILES)
 	$(CXX) -c -I. -Itest/include $(CXXFLAGS) $(COMMON_FLAGS) $(DEBUG_FLAGS) $< -o $@
 
@@ -76,6 +79,7 @@ doc: doc/Doxyfile README.md tutorial.md $(HPP_FILES)
 	doxygen doc/Doxyfile
 
 clean:
+	rm -f ./bin/read-pbf
 	rm -f ./test/ptests
 	rm -f ./test/ptests.o
 	rm -f ./test/ptests.gc*
