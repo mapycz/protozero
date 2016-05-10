@@ -78,6 +78,14 @@ all: ./test/tests test/writer_tests
 ./test/writer_tests: test/writer_tests.o $(PROTO_FILES_O) $(WRITER_TEST_CASES_O)
 	$(CXX) $(LDFLAGS) $(LDFLAGS_PROTOBUF) $^ -lprotobuf-lite $(PTHREAD_FLAGS) -o $@
 
+tools/decode.o: tools/decode.cpp $(HPP_FILES)
+	$(CXX) -c -isystem tools -Iinclude $(CXXFLAGS) $(COMMON_FLAGS) $(DEBUG_FLAGS) $< -o $@
+
+tools/decode: tools/decode.o
+	$(CXX) $(LDFLAGS) $^ -o $@
+
+tools: tools/decode
+
 test: all
 	./test/tests
 	./test/writer_tests
