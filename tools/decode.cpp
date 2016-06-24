@@ -49,7 +49,19 @@ std::string decode(const char* data, std::size_t len, const std::string& indent)
                         }
                     } else {
                         // Fall back.
-                        stream << "BINARY DATA\n";
+                        try {
+                            protozero::pbf_reader repeated(view);
+                            auto x = repeated.get_packed_int64();
+                            bool first = true;
+                            for (auto val : x) {
+                                if (first) first = false;
+                                else stream << ",";
+                                stream << val;
+                            }
+                            stream << "\n";
+                        } catch (std::exception const&) {
+                            // TODO - what type causes this to be hit?
+                        }
                     }
                 }
                 break;
