@@ -32,13 +32,13 @@ std::string decode(const char* data, std::size_t len, const std::string& indent)
                 break;
             case protozero::pbf_wire_type::length_delimited: {
                 // This is string, bytes, embedded messages, or packed repeated fields.
-                auto d = item.get_data();
+                auto view = item.get_view();
                 try {
                     // Try decoding as a nested message first.
-                    auto nested = decode(d.first, d.second, indent + "  ");
+                    auto nested = decode(view.data(), view.size(), indent + "  ");
                     stream << "\n" << nested;
                 } catch (std::exception const&) {
-                    std::string str(d.first, d.second);
+                    std::string str(view.data(), view.size());
                     std::smatch match;
                     if (std::regex_match(str, match, printable)) {
                         // Try decoding as a string.
