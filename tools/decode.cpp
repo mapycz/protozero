@@ -4,6 +4,9 @@
 #include <string>
 #include <sstream>
 
+// we need to disable asserts such that even in debug mode
+// only exceptions are thrown on invalid reads and we can
+// fallback and recover from guessing wrong about types
 # define protozero_assert(x)
 #include <protozero/pbf_reader.hpp>
 
