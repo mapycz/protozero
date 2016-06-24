@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 
+# define protozero_assert(x)
 #include <protozero/pbf_reader.hpp>
 
 static const size_t max_string_length = 60;
