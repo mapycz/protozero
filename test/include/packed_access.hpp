@@ -65,6 +65,28 @@ TEST_CASE("read repeated packed field: " PBF_TYPE_NAME) {
             REQUIRE(it == it_range.end());
         }
 
+        SECTION("swap iterator range") {
+            abuffer.append(load_data("repeated_packed_" PBF_TYPE_NAME "/data-many"));
+
+            protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
+
+            REQUIRE(item.next());
+            auto it_range1 = item.GET_TYPE();
+            REQUIRE(!item.next());
+
+            decltype(it_range1) it_range;
+            using std::swap;
+            swap(it_range, it_range1);
+
+            auto it = it_range.begin();
+            REQUIRE(it != it_range.end());
+            REQUIRE(*it++ ==   17);
+            REQUIRE(*it++ ==  200);
+            REQUIRE(*it++ ==    0);
+            REQUIRE(*it++ ==    1);
+            REQUIRE(*it++ == std::numeric_limits<cpp_type>::max());
+        }
+
         SECTION("end_of_buffer") {
             abuffer.append(load_data("repeated_packed_" PBF_TYPE_NAME "/data-many"));
 
@@ -194,16 +216,19 @@ TEST_CASE("write from different types of iterators: " PBF_TYPE_NAME) {
     protozero::pbf_reader item(buffer);
 
     REQUIRE(item.next());
-    const auto it_range = item.GET_TYPE();
+    auto it_range = item.GET_TYPE();
     REQUIRE(!item.next());
     REQUIRE(std::distance(it_range.begin(), it_range.end()) == 5);
 
-    auto it = it_range.begin();
-    REQUIRE(*it++ ==  1);
-    REQUIRE(*it++ ==  4);
-    REQUIRE(*it++ ==  9);
-    REQUIRE(*it++ == 16);
-    REQUIRE(*it++ == 25);
-    REQUIRE(it == it_range.end());
+    REQUIRE(it_range.front() ==  1); it_range.drop_front();
+    REQUIRE(it_range.front() ==  4); it_range.drop_front();
+    REQUIRE(it_range.front() ==  9); it_range.drop_front();
+    REQUIRE(it_range.front() == 16); it_range.drop_front();
+    REQUIRE(it_range.front() == 25); it_range.drop_front();
+    REQUIRE(it_range.empty());
+
+    REQUIRE_THROWS_AS(it_range.front(), assert_error);
+    REQUIRE_THROWS_AS(it_range.drop_front(), assert_error);
+
 }
 
