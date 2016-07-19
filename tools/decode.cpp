@@ -35,6 +35,7 @@ std::string decode(const char* data, std::size_t len, const std::string& indent)
                 break;
             case protozero::pbf_wire_type::length_delimited: {
                 // This is string, bytes, embedded messages, or packed repeated fields.
+                protozero::pbf_reader item_copy{item};
                 auto view = item.get_view();
                 try {
                     // Try decoding as a nested message first.
@@ -53,17 +54,19 @@ std::string decode(const char* data, std::size_t len, const std::string& indent)
                     } else {
                         // Fall back.
                         try {
-                            protozero::pbf_reader repeated(view);
-                            auto x = repeated.get_packed_int64();
+                            auto range = item_copy.get_packed_int64();
                             bool first = true;
-                            for (auto val : x) {
+                            for (auto val : range) {
                                 if (first) first = false;
                                 else stream << ",";
                                 stream << val;
                             }
                             stream << "\n";
-                        } catch (std::exception const&) {
-                            // TODO - what type causes this to be hit?
+                        } catch (std::exception const& e) {
+                            std::cerr << "Exception: " << e.what() << "\n";
+                            // TODO
+                            // This can happen if the packed repeated field
+                            // is not an int64 field but something else.
                         }
                     }
                 }
