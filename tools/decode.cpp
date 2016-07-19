@@ -1,8 +1,8 @@
 
 #include <iostream>
 #include <regex>
-#include <string>
 #include <sstream>
+#include <string>
 
 // we need to disable asserts such that even in debug mode
 // only exceptions are thrown on invalid reads and we can
@@ -10,11 +10,10 @@
 # define protozero_assert(x)
 #include <protozero/pbf_reader.hpp>
 
-static const size_t max_string_length = 60;
+static constexpr const size_t max_string_length = 60;
 
-static const std::regex printable{"^[A-Za-z0-9]*$"};
-
-std::string decode(const char* data, std::size_t len, const std::string& indent) {
+static std::string decode(const char* data, std::size_t len, const std::string& indent) {
+    static const std::regex printable{"^[A-Za-z0-9]*$"};
     std::stringstream stream;
 
     protozero::pbf_reader item(data, len);
@@ -36,13 +35,13 @@ std::string decode(const char* data, std::size_t len, const std::string& indent)
             case protozero::pbf_wire_type::length_delimited: {
                 // This is string, bytes, embedded messages, or packed repeated fields.
                 protozero::pbf_reader item_copy{item};
-                auto view = item.get_view();
+                const auto view = item.get_view();
                 try {
                     // Try decoding as a nested message first.
                     auto nested = decode(view.data(), view.size(), indent + "  ");
                     stream << "\n" << nested;
                 } catch (std::exception const&) {
-                    std::string str(view.data(), view.size());
+                    const std::string str(view.data(), view.size());
                     std::smatch match;
                     if (std::regex_match(str, match, printable)) {
                         // Try decoding as a string.
@@ -54,7 +53,7 @@ std::string decode(const char* data, std::size_t len, const std::string& indent)
                     } else {
                         // Fall back.
                         try {
-                            auto range = item_copy.get_packed_int64();
+                            const auto range = item_copy.get_packed_int64();
                             bool first = true;
                             for (auto val : range) {
                                 if (first) first = false;
@@ -62,8 +61,8 @@ std::string decode(const char* data, std::size_t len, const std::string& indent)
                                 stream << val;
                             }
                             stream << "\n";
-                        } catch (std::exception const& e) {
-                            std::cerr << "Exception: " << e.what() << "\n";
+                        } catch (std::exception const& ex) {
+                            std::cerr << "Exception: " << ex.what() << "\n";
                             // TODO
                             // This can happen if the packed repeated field
                             // is not an int64 field but something else.
