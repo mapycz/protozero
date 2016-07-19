@@ -85,7 +85,11 @@ static std::string decode(const char* data, std::size_t len, const std::string& 
     return stream.str();
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc != 1) {
+        std::cerr << "Usage: " << argv[0] << " <INPUT_FILE\n";
+        return 1;
+    }
     try {
         std::string buffer(std::istreambuf_iterator<char>(std::cin.rdbuf()),
                            std::istreambuf_iterator<char>());
