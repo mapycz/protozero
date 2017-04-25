@@ -1,0 +1,14 @@
+Source: szn-libprotozero
+Maintainer: Jiri Drbalek <jiri.drbalek@firma.seznam.cz>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends:
+    debhelper (>= 9),
+    protobuf-compiler
+
+Package: szn-libprotozero-dev
+Section: libdevel
+Architecture: amd64
+Depends: ${misc:Depends}
+Description: Minimalistic protocol buffer decoder and encoder in C++
