@@ -7,26 +7,21 @@
 // Input data.vector is encoded according to
 // https://github.com/mapbox/mapnik-vector-tile/blob/master/proto/vector_tile.proto
 
-static const std::vector<std::string> expected_layer_names = {
-    "landuse", "waterway", "water", "aeroway", "barrier_line", "building",
-    "landuse_overlay", "tunnel", "road", "bridge", "admin",
-    "country_label_line", "country_label", "marine_label", "state_label",
-    "place_label", "water_label", "area_label", "rail_station_label",
-    "airport_label", "road_label", "waterway_label", "building_label"
-};
-
-namespace {
-
-std::string get_name(protozero::pbf_reader layer) { // copy!
+static std::string get_name(protozero::pbf_reader layer) { // copy!
     while (layer.next(1)) { // required string name
         return layer.get_string();
     }
     return "";
 }
 
-} // anon namespace
-
 TEST_CASE("reading vector tiles") {
+    static const std::vector<std::string> expected_layer_names = {
+        "landuse", "waterway", "water", "aeroway", "barrier_line", "building",
+        "landuse_overlay", "tunnel", "road", "bridge", "admin",
+        "country_label_line", "country_label", "marine_label", "state_label",
+        "place_label", "water_label", "area_label", "rail_station_label",
+        "airport_label", "road_label", "waterway_label", "building_label"
+    };
 
     const std::string buffer = load_data("vector_tile/data.vector");
     protozero::pbf_reader item{buffer};

@@ -8,7 +8,7 @@
 TEST_CASE("write bool field and check with libprotobuf") {
 
     std::string buffer;
-    protozero::pbf_writer pw(buffer);
+    protozero::pbf_writer pw{buffer};
 
     TestBoolean::Test msg;
 
@@ -17,7 +17,7 @@ TEST_CASE("write bool field and check with libprotobuf") {
 
         msg.ParseFromString(buffer);
 
-        REQUIRE(!msg.b());
+        REQUIRE_FALSE(msg.b());
     }
 
     SECTION("true") {

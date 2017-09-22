@@ -19,7 +19,7 @@ TEST_CASE("read repeated packed float field") {
             abuffer.append(load_data("repeated_packed_float/data-empty"));
             protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
 
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
         }
 
         SECTION("one") {
@@ -28,7 +28,7 @@ TEST_CASE("read repeated packed float field") {
 
             REQUIRE(item.next());
             auto it_range = item.get_packed_float();
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
 
             REQUIRE(*it_range.begin() == 17.34f);
             REQUIRE(std::next(it_range.begin()) == it_range.end());
@@ -40,7 +40,7 @@ TEST_CASE("read repeated packed float field") {
 
             REQUIRE(item.next());
             auto it_range = item.get_packed_float();
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
 
             auto it = it_range.begin();
             REQUIRE(*it++ == 17.34f);
@@ -57,7 +57,7 @@ TEST_CASE("read repeated packed float field") {
             for (std::string::size_type i = 1; i < abuffer.size() - n; ++i) {
                 protozero::pbf_reader item(abuffer.data() + n, i);
                 REQUIRE(item.next());
-                REQUIRE_THROWS_AS(item.get_packed_float(), protozero::end_of_buffer_exception);
+                REQUIRE_THROWS_AS(item.get_packed_float(), const protozero::end_of_buffer_exception&);
             }
         }
 

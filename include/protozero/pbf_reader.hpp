@@ -18,6 +18,7 @@ documentation.
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <utility>
 
@@ -41,13 +42,13 @@ namespace protozero {
  * @code
  *    std::string buffer;
  *    // fill buffer...
- *    pbf_reader message(buffer.data(), buffer.size());
+ *    pbf_reader message{buffer.data(), buffer.size()};
  * @endcode
  *
  * Sub-messages are created using get_message():
  *
  * @code
- *    pbf_reader message(...);
+ *    pbf_reader message{...};
  *    message.next();
  *    pbf_reader submessage = message.get_message();
  * @endcode
@@ -87,8 +88,8 @@ class pbf_reader {
         protozero_assert(tag() != 0 && "call next() before accessing field value");
         const auto len = get_len_and_skip();
         protozero_assert(len % sizeof(T) == 0);
-        return iterator_range<const_fixed_iterator<T>>{const_fixed_iterator<T>(m_data - len, m_data),
-                                                       const_fixed_iterator<T>(m_data, m_data)};
+        return {const_fixed_iterator<T>(m_data - len, m_data),
+                const_fixed_iterator<T>(m_data, m_data)};
     }
 
     template <typename T>
@@ -108,7 +109,7 @@ class pbf_reader {
 
     void skip_bytes(pbf_length_type len) {
         if (m_data + len > m_end) {
-            throw end_of_buffer_exception();
+            throw end_of_buffer_exception{};
         }
         m_data += len;
 
@@ -129,8 +130,8 @@ class pbf_reader {
     iterator_range<T> get_packed() {
         protozero_assert(tag() != 0 && "call next() before accessing field value");
         const auto len = get_len_and_skip();
-        return iterator_range<T>{T{m_data - len, m_data},
-                                 T{m_data, m_data}};
+        return {T{m_data - len, m_data},
+                T{m_data, m_data}};
     }
 
 public:
@@ -147,9 +148,7 @@ public:
      */
     explicit pbf_reader(const data_view& view) noexcept
         : m_data(view.data()),
-          m_end(view.data() + view.size()),
-          m_wire_type(pbf_wire_type::unknown),
-          m_tag(0) {
+          m_end(view.data() + view.size()) {
     }
 
     /**
@@ -164,9 +163,7 @@ public:
      */
     pbf_reader(const char* data, std::size_t size) noexcept
         : m_data(data),
-          m_end(data + size),
-          m_wire_type(pbf_wire_type::unknown),
-          m_tag(0) {
+          m_end(data + size) {
     }
 
     /**
@@ -179,11 +176,9 @@ public:
      *
      * @post There is no current field.
      */
-    pbf_reader(const std::pair<const char*, std::size_t>& data) noexcept
+    explicit pbf_reader(const std::pair<const char*, std::size_t>& data) noexcept
         : m_data(data.first),
-          m_end(data.first + data.second),
-          m_wire_type(pbf_wire_type::unknown),
-          m_tag(0) {
+          m_end(data.first + data.second) {
     }
 
     /**
@@ -196,11 +191,9 @@ public:
      *
      * @post There is no current field.
      */
-    pbf_reader(const std::string& data) noexcept
+    explicit pbf_reader(const std::string& data) noexcept
         : m_data(data.data()),
-          m_end(data.data() + data.size()),
-          m_wire_type(pbf_wire_type::unknown),
-          m_tag(0) {
+          m_end(data.data() + data.size()) {
     }
 
     /**
@@ -241,7 +234,7 @@ public:
      * are still fields available and to `false` if the last field has been
      * read.
      */
-    operator bool() const noexcept {
+    operator bool() const noexcept { // NOLINT clang-tidy: google-explicit-constructor
         return m_data < m_end;
     }
 
@@ -294,7 +287,7 @@ public:
             case pbf_wire_type::fixed32:
                 break;
             default:
-                throw unknown_pbf_wire_type_exception();
+                throw unknown_pbf_wire_type_exception{};
         }
 
         return true;
@@ -306,7 +299,7 @@ public:
      * loop for repeated fields:
      *
      * @code
-     *    pbf_reader message(...);
+     *    pbf_reader message{...};
      *    while (message.next(17)) {
      *        // handle field
      *    }
@@ -315,7 +308,7 @@ public:
      * or you can call it just once to get the one field with this tag:
      *
      * @code
-     *    pbf_reader message(...);
+     *    pbf_reader message{...};
      *    if (message.next(17)) {
      *        // handle field
      *    }
@@ -332,9 +325,8 @@ public:
         while (next()) {
             if (m_tag == next_tag) {
                 return true;
-            } else {
-                skip();
             }
+            skip();
         }
         return false;
     }
@@ -345,7 +337,7 @@ public:
      * called in a while loop for repeated fields:
      *
      * @code
-     *    pbf_reader message(...);
+     *    pbf_reader message{...};
      *    while (message.next(17, pbf_wire_type::varint)) {
      *        // handle field
      *    }
@@ -354,7 +346,7 @@ public:
      * or you can call it just once to get the one field with this tag:
      *
      * @code
-     *    pbf_reader message(...);
+     *    pbf_reader message{...};
      *    if (message.next(17, pbf_wire_type::varint)) {
      *        // handle field
      *    }
@@ -371,9 +363,8 @@ public:
         while (next()) {
             if (m_tag == next_tag && m_wire_type == type) {
                 return true;
-            } else {
-                skip();
             }
+            skip();
         }
         return false;
     }
@@ -417,7 +408,7 @@ public:
      * Use it like this:
      *
      * @code
-     *    pbf_reader message(...);
+     *    pbf_reader message{...};
      *    while (message.next()) {
      *        switch (message.tag_and_type()) {
      *            case tag_and_type(17, pbf_wire_type::length_delimited):
@@ -667,7 +658,7 @@ public:
         protozero_assert(tag() != 0 && "call next() before accessing field value");
         protozero_assert(has_wire_type(pbf_wire_type::length_delimited) && "not of type string, bytes or message");
         const auto len = get_len_and_skip();
-        return data_view{m_data - len, len};
+        return {m_data - len, len};
     }
 
 #ifndef PROTOZERO_STRICT_API
@@ -683,7 +674,7 @@ public:
         protozero_assert(tag() != 0 && "call next() before accessing field value");
         protozero_assert(has_wire_type(pbf_wire_type::length_delimited) && "not of type string, bytes or message");
         const auto len = get_len_and_skip();
-        return std::make_pair(m_data - len, len);
+        return {m_data - len, len};
     }
 #endif
 
@@ -717,7 +708,7 @@ public:
      * @post The current field was consumed and there is no current field now.
      */
     pbf_reader get_message() {
-        return pbf_reader(get_view());
+        return pbf_reader{get_view()};
     }
 
     ///@}

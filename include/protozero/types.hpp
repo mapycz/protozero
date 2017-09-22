@@ -16,6 +16,7 @@ documentation.
  * @brief Contains the declaration of low-level types used in the pbf format.
  */
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -73,18 +74,15 @@ using data_view = PROTOZERO_USE_VIEW;
  */
 class data_view {
 
-    const char* m_data;
-    std::size_t m_size;
+    const char* m_data = nullptr;
+    std::size_t m_size = 0;
 
 public:
 
     /**
      * Default constructor. Construct an empty data_view.
      */
-    constexpr data_view() noexcept
-        : m_data(nullptr),
-          m_size(0) {
-    }
+    constexpr data_view() noexcept = default;
 
     /**
      * Create data_view from pointer and size.
@@ -102,7 +100,7 @@ public:
      *
      * @param str String with the data.
      */
-    data_view(const std::string& str) noexcept
+    data_view(const std::string& str) noexcept // NOLINT clang-tidy: google-explicit-constructor
         : m_data(str.data()),
           m_size(str.size()) {
     }
@@ -112,7 +110,7 @@ public:
      *
      * @param ptr Pointer to the data.
      */
-    data_view(const char* ptr) noexcept
+    data_view(const char* ptr) noexcept // NOLINT clang-tidy: google-explicit-constructor
         : m_data(ptr),
           m_size(std::strlen(ptr)) {
     }
@@ -138,14 +136,23 @@ public:
         return m_size;
     }
 
+    /// Returns true if size is 0.
+    constexpr bool empty() const noexcept {
+        return m_size == 0;
+    }
+
     /**
      * Convert data view to string.
      *
      * @pre Must not be default constructed data_view.
+     *
+     * @deprecated to_string() is not available in C++17 string_view so it
+     *             should not be used to make conversion to that class easier
+     *             in the future.
      */
     std::string to_string() const {
         protozero_assert(m_data);
-        return std::string{m_data, m_size};
+        return {m_data, m_size};
     }
 
     /**
@@ -155,7 +162,7 @@ public:
      */
     explicit operator std::string() const {
         protozero_assert(m_data);
-        return std::string{m_data, m_size};
+        return {m_data, m_size};
     }
 
 }; // class data_view
@@ -178,7 +185,7 @@ inline void swap(data_view& lhs, data_view& rhs) noexcept {
  * @param rhs Second object.
  */
 inline bool operator==(const data_view& lhs, const data_view& rhs) noexcept {
-    return lhs.size() == rhs.size() && !std::strcmp(lhs.data(), rhs.data());
+    return lhs.size() == rhs.size() && std::equal(lhs.data(), lhs.data() + lhs.size(), rhs.data());
 }
 
 /**

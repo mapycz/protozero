@@ -8,7 +8,7 @@ TEST_CASE("read repeated fields") {
 
         protozero::pbf_reader item(buffer);
 
-        REQUIRE(!item.next());
+        REQUIRE_FALSE(item.next());
     }
 
     SECTION("one") {
@@ -18,7 +18,7 @@ TEST_CASE("read repeated fields") {
 
         REQUIRE(item.next());
         REQUIRE(item.get_int32() == 0L);
-        REQUIRE(!item.next());
+        REQUIRE_FALSE(item.next());
     }
 
     SECTION("many") {
@@ -41,7 +41,7 @@ TEST_CASE("read repeated fields") {
         REQUIRE(item.next());
         REQUIRE(item.get_int32() == std::numeric_limits<int32_t>::min());
 
-        REQUIRE(!item.next());
+        REQUIRE_FALSE(item.next());
     }
 
     SECTION("end_of_buffer") {
@@ -50,7 +50,7 @@ TEST_CASE("read repeated fields") {
         for (std::string::size_type i = 1; i < buffer.size(); ++i) {
             protozero::pbf_reader item(buffer.data(), i);
             REQUIRE(item.next());
-            REQUIRE_THROWS_AS(item.get_int32(), protozero::end_of_buffer_exception);
+            REQUIRE_THROWS_AS(item.get_int32(), const protozero::end_of_buffer_exception&);
         }
     }
 

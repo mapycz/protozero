@@ -13,6 +13,62 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 
+## [1.5.3] - 2017-09-22
+
+### Added
+
+- More documentation.
+- New `size()` method on iterator range used for packed repeated fields to
+  find out how many elements there are in the range. This is much faster
+  compared to the `std::difference()` call you had to do before, because the
+  varints don't have to be fully decoded. See [Advanced
+  Topics](doc/advanced.md) for details.
+
+### Changed
+
+- Updated clang-tidy settings in Makefiles and fixed a lot of minor issues
+  reported by clang-tidy.
+- Update included catch.hpp to version 1.10.0.
+- Miscellaneous code cleanups.
+- Support for invalid state in `pbf_writer` and `packed_repeated_fields`.
+  This fixes move construction and move assignement in `pbf_writer` and
+  disables the copy construction and copy assignement which don't have
+  clear semantics. It introduces an invalid or empty state in the
+  `pbf_writer`, `pbf_builder`, and `packed_repeated_fields` classes used for
+  default-constructed, moved from, or committed objects. There is a new
+  `commit()` function for `pbf_writer` and the `packed_repeated_fields` which
+  basically does the same as the destructor but can be called explicitly.
+
+### Fixed
+
+- The `empty()` method of the iterator range now returns a `bool` instead of
+  a `size_t`.
+
+
+## [1.5.2] - 2017-06-30
+
+### Added
+
+- Add missing two-parameter version of `pbf_message::next()` function.
+- Add `data_view::empty()` function.
+- Add missing versions of `add_bytes()`, `add_string()`, and `add_message()`
+  to `pbf_builder`.
+
+### Changed
+
+- Clarify include file usage in tutorial.
+- Updated included Catch unit test framework to version 1.9.6 and updated
+  tests to work with the current version.
+- Make some constructors explicit (best practice to avoid silent conversions).
+
+### Fixed
+
+- Important bugfix in `data_view` equality operator. The equality operator is
+  actually never used in the protozero code itself, but users of protozero
+  might use it. This is a serious bug that could lead to buffer overrun type
+  problems.
+
+
 ## [1.5.1] - 2017-01-14
 
 ### Added
@@ -167,7 +223,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Make pbf reader and writer code endianess-aware.
 
 
-[unreleased]: https://github.com/osmcode/libosmium/compare/v1.5.1...HEAD
+[unreleased]: https://github.com/osmcode/libosmium/compare/v1.5.3...HEAD
+[1.5.3]: https://github.com/osmcode/libosmium/compare/v1.5.3...v1.5.3
+[1.5.2]: https://github.com/osmcode/libosmium/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/osmcode/libosmium/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/osmcode/libosmium/compare/v1.4.5...v1.5.0
 [1.4.5]: https://github.com/osmcode/libosmium/compare/v1.4.4...v1.4.5

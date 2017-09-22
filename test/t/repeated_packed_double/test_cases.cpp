@@ -19,7 +19,7 @@ TEST_CASE("read repeated packed double field") {
             abuffer.append(load_data("repeated_packed_double/data-empty"));
             protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
 
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
         }
 
         SECTION("one") {
@@ -28,7 +28,7 @@ TEST_CASE("read repeated packed double field") {
 
             REQUIRE(item.next());
             auto it_range = item.get_packed_double();
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
 
             REQUIRE(*it_range.begin() == 17.34);
             REQUIRE(std::next(it_range.begin()) == it_range.end());
@@ -40,7 +40,7 @@ TEST_CASE("read repeated packed double field") {
 
             REQUIRE(item.next());
             auto it_range = item.get_packed_double();
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
 
             auto it = it_range.begin();
             REQUIRE(*it++ == 17.34);
@@ -57,7 +57,7 @@ TEST_CASE("read repeated packed double field") {
             for (std::string::size_type i = 1; i < abuffer.size() - n; ++i) {
                 protozero::pbf_reader item(abuffer.data() + n, i);
                 REQUIRE(item.next());
-                REQUIRE_THROWS_AS(item.get_packed_double(), protozero::end_of_buffer_exception);
+                REQUIRE_THROWS_AS(item.get_packed_double(), const protozero::end_of_buffer_exception&);
             }
         }
 

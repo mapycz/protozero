@@ -9,8 +9,8 @@ TEST_CASE("read string field using get_string") {
         protozero::pbf_reader item(buffer);
 
         REQUIRE(item.next());
-        REQUIRE(item.get_string() == "");
-        REQUIRE(!item.next());
+        REQUIRE(item.get_string().empty());
+        REQUIRE_FALSE(item.next());
     }
 
     SECTION("one") {
@@ -20,7 +20,7 @@ TEST_CASE("read string field using get_string") {
 
         REQUIRE(item.next());
         REQUIRE(item.get_string() == "x");
-        REQUIRE(!item.next());
+        REQUIRE_FALSE(item.next());
     }
 
     SECTION("string") {
@@ -30,7 +30,7 @@ TEST_CASE("read string field using get_string") {
 
         REQUIRE(item.next());
         REQUIRE(item.get_string() == "foobar");
-        REQUIRE(!item.next());
+        REQUIRE_FALSE(item.next());
     }
 
     SECTION("end_of_buffer") {
@@ -39,7 +39,7 @@ TEST_CASE("read string field using get_string") {
         for (std::string::size_type i = 1; i < buffer.size(); ++i) {
             protozero::pbf_reader item(buffer.data(), i);
             REQUIRE(item.next());
-            REQUIRE_THROWS_AS(item.get_string(), protozero::end_of_buffer_exception);
+            REQUIRE_THROWS_AS(item.get_string(), const protozero::end_of_buffer_exception&);
         }
     }
 
@@ -54,8 +54,8 @@ TEST_CASE("read string field using get_view") {
 
         REQUIRE(item.next());
         auto v = item.get_view();
-        REQUIRE(v.size() == 0);
-        REQUIRE(!item.next());
+        REQUIRE(v.empty());
+        REQUIRE_FALSE(item.next());
     }
 
     SECTION("one") {
@@ -67,7 +67,7 @@ TEST_CASE("read string field using get_view") {
         auto v = item.get_view();
         REQUIRE(*v.data() == 'x');
         REQUIRE(v.size() == 1);
-        REQUIRE(!item.next());
+        REQUIRE_FALSE(item.next());
     }
 
     SECTION("string") {
@@ -77,7 +77,7 @@ TEST_CASE("read string field using get_view") {
 
         REQUIRE(item.next());
         REQUIRE(std::string(item.get_view()) == "foobar");
-        REQUIRE(!item.next());
+        REQUIRE_FALSE(item.next());
     }
 
     SECTION("end_of_buffer") {
@@ -86,7 +86,7 @@ TEST_CASE("read string field using get_view") {
         for (std::string::size_type i = 1; i < buffer.size(); ++i) {
             protozero::pbf_reader item(buffer.data(), i);
             REQUIRE(item.next());
-            REQUIRE_THROWS_AS(item.get_view(), protozero::end_of_buffer_exception);
+            REQUIRE_THROWS_AS(item.get_view(), const protozero::end_of_buffer_exception&);
         }
     }
 

@@ -142,13 +142,13 @@ a rough estimate. Still, you should probably only use this facility if you have
 benchmarks proving that it actually makes your program faster.
 
 
-## Using the Low-Level Varint and Zigzag Encoding and Decoding Functions
+## Using the low-level varint and zigzag encoding and decoding functions
 
 Protozero gives you access to the low-level functions for encoding and
 decoding varint and zigzag integer encodings, because these functions can
 sometimes be useful outside the Protocol Buffer context.
 
-### Using Low-Level Functions
+### Using low-level functions
 
 To use the low-level functions, add this include to your C++ program:
 
@@ -222,4 +222,31 @@ length-delimited field including strings, bytes, messages and repeated packed
 fields.
 
 The function is also available in the `pbf_builder` class.
+
+
+## How many items are there in a repeated packed field?
+
+Sometimes it is useful to know how many values there are in a repeated packed
+field. For instance when you want to reserve space in a `std::vector`.
+
+```cpp
+protozero::pbf_reader message{...};
+message.next(...);
+const auto range = message.get_packed_sint32();
+
+std::vector<int> myvalues;
+myvalues.reserve(range.size());
+
+for (auto value : range) {
+    myvalues.push_back(value);
+}
+```
+
+It depends on the type of range how expensive the `size()` call is. For ranges
+derived from packed repeated fixed sized values the effort will be constant,
+for ranges derived from packed repeated varints, the effort will be linear, but
+still considerably cheaper than decoding the varints (for instance by calling
+`std::distance(range.begin(), range.end());`). You have to benchmark your use
+case to see whether the `reserve()` (or whatever you are using the `size()`
+for) is worth it.
 

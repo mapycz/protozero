@@ -17,61 +17,61 @@ TEST_CASE("check alignment issues for fixed32 field") {
 
         SECTION("zero") {
             abuffer.append(load_data("fixed32/data-zero"));
-            protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
+            protozero::pbf_reader item{abuffer.data() + n, abuffer.size() - n};
 
             REQUIRE(item.next());
             REQUIRE(item.get_fixed32() == 0UL);
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
         }
 
         SECTION("positive") {
             abuffer.append(load_data("fixed32/data-pos"));
-            protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
+            protozero::pbf_reader item{abuffer.data() + n, abuffer.size() - n};
 
             REQUIRE(item.next());
             REQUIRE(item.get_fixed32() == 1UL);
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
         }
 
         SECTION("max") {
             abuffer.append(load_data("fixed32/data-max"));
-            protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
+            protozero::pbf_reader item{abuffer.data() + n, abuffer.size() - n};
 
             REQUIRE(item.next());
             REQUIRE(item.get_fixed32() == std::numeric_limits<uint32_t>::max());
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
         }
 
         SECTION("end_of_buffer") {
             abuffer.append(load_data("fixed32/data-pos"));
 
             for (std::string::size_type i = 1; i < abuffer.size() - n; ++i) {
-                protozero::pbf_reader item(abuffer.data() + n, i);
+                protozero::pbf_reader item{abuffer.data() + n, i};
                 REQUIRE(item.next());
-                REQUIRE_THROWS_AS(item.get_fixed32(), protozero::end_of_buffer_exception);
+                REQUIRE_THROWS_AS(item.get_fixed32(), const protozero::end_of_buffer_exception&);
             }
         }
 
         SECTION("assert detecting tag==0") {
             abuffer.append(load_data("fixed32/data-zero"));
-            protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
+            protozero::pbf_reader item{abuffer.data() + n, abuffer.size() - n};
 
-            REQUIRE_THROWS_AS(item.get_fixed32(), assert_error);
+            REQUIRE_THROWS_AS(item.get_fixed32(), const assert_error&);
             REQUIRE(item.next());
             REQUIRE(item.get_fixed32() == 0UL);
             REQUIRE_THROWS(item.get_fixed32());
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
         }
 
         SECTION("skip") {
             abuffer.append(load_data("fixed32/data-zero"));
-            protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
+            protozero::pbf_reader item{abuffer.data() + n, abuffer.size() - n};
 
-            REQUIRE_THROWS_AS(item.skip(), assert_error);
+            REQUIRE_THROWS_AS(item.skip(), const assert_error&);
             REQUIRE(item.next());
             item.skip();
             REQUIRE_THROWS(item.skip());
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
         }
 
     }
@@ -88,38 +88,38 @@ TEST_CASE("check alignment issues for fixed64 field") {
 
         SECTION("zero") {
             abuffer.append(load_data("fixed64/data-zero"));
-            protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
+            protozero::pbf_reader item{abuffer.data() + n, abuffer.size() - n};
 
             REQUIRE(item.next());
             REQUIRE(item.get_fixed64() == 0ULL);
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
         }
 
         SECTION("positive") {
             abuffer.append(load_data("fixed64/data-pos"));
-            protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
+            protozero::pbf_reader item{abuffer.data() + n, abuffer.size() - n};
 
             REQUIRE(item.next());
             REQUIRE(item.get_fixed64() == 1ULL);
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
         }
 
         SECTION("max") {
             abuffer.append(load_data("fixed64/data-max"));
-            protozero::pbf_reader item(abuffer.data() + n, abuffer.size() - n);
+            protozero::pbf_reader item{abuffer.data() + n, abuffer.size() - n};
 
             REQUIRE(item.next());
             REQUIRE(item.get_fixed64() == std::numeric_limits<uint64_t>::max());
-            REQUIRE(!item.next());
+            REQUIRE_FALSE(item.next());
         }
 
         SECTION("end_of_buffer") {
             abuffer.append(load_data("fixed64/data-pos"));
 
             for (std::string::size_type i = 1; i < abuffer.size() - n; ++i) {
-                protozero::pbf_reader item(abuffer.data() + n, i);
+                protozero::pbf_reader item{abuffer.data() + n, i};
                 REQUIRE(item.next());
-                REQUIRE_THROWS_AS(item.get_fixed64(), protozero::end_of_buffer_exception);
+                REQUIRE_THROWS_AS(item.get_fixed64(), const protozero::end_of_buffer_exception&);
             }
         }
 

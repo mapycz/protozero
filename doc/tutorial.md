@@ -1,7 +1,7 @@
 
 # Protozero Tutorial
 
-## Getting to Know Protocol Buffers
+## Getting to know Protocol Buffers
 
 Protozero is a very low level library. You really have to know some of the
 insides of Protocol Buffers to work with it!
@@ -29,12 +29,6 @@ Keep the `protozero` directory and include the files in the form
 #include <protozero/FILENAME.hpp>
 ```
 
-You always need `byteswap.hpp`, `config.hpp`, `types.hpp`, `varint.hpp`,
-and `exception.hpp`. For reading you need `pbf_reader.hpp` and probably
-`pbf_message.hpp`, for writing you need `pbf_writer.hpp` and probably
-`pbf_builder.hpp`. You only need `version.hpp` if you want access to the macros
-defining the library version.
-
 
 ## Parsing protobuf-encoded messages
 
@@ -50,7 +44,7 @@ The `pbf_reader` class contains asserts that will detect some programming
 errors. We encourage you to compile with asserts enabled in your debug builds.
 
 
-### An Introductory Example
+### An introductory example
 
 Lets say you have a protocol description in a `.proto` file like this:
 
@@ -72,7 +66,7 @@ looks somewhat like this:
 std::string input = get_input_data();
 
 // initialize pbf message with this data
-protozero::pbf_reader message(input);
+protozero::pbf_reader message{input};
 
 // iterate over fields in the message
 while (message.next()) {
@@ -116,7 +110,7 @@ fields, too, unless you want your program to break if somebody adds a new
 field.
 
 
-### If You Only Need a Single Field
+### If you only need a single field
 
 If, out of a protocol buffer message, you only need the value of a single
 field, you can use the version of the `next()` function with a parameter:
@@ -131,7 +125,7 @@ while (message.next(17)) {
 }
 ```
 
-### Handling Scalar Fields
+### Handling scalar fields
 
 As you saw in the example, handling scalar field types is reasonably easy. You
 just check the `.proto` file for the type of a field and call the corresponding
@@ -145,10 +139,10 @@ returns a `data_view` containing a pointer into the data (access with `data()`)
 and the length of the data (access with `size()`).
 
 
-### Handling Repeated Packed Fields
+### Handling repeated packed fields
 
 Fields that are marked as `[packed=true]` in the `.proto` file are handled
-somewhat differently. `get_packed_...()` functions returning an iterator pair
+somewhat differently. `get_packed_...()` functions returning an iterator range
 are used to access the data.
 
 So, for example, if you have a protocol description in a `.proto` file like
@@ -163,28 +157,36 @@ message Example2 {
 You can get to the data like this:
 
 ```cpp
-protozero::pbf_reader message(input.data(), input.size());
+protozero::pbf_reader message{input.data(), input.size()};
 
 // set current field
-item.next(1);
+message.next(1);
 
-// get an iterator pair
-auto pi = item.get_packed_sint32();
+// get an iterator range
+auto pi = message.get_packed_sint32();
 
 // iterate to get to all values
-for (auto it = pi.first; it != pi.second; ++it) {
-    std::cout << *it << "\n";
+for (auto it = pi.begin(); it != pi.end(); ++it) {
+    std::cout << *it << '\n';
 }
 ```
 
-So you are getting a pair of normal forward iterators that can be used with any
-STL algorithms etc.
+Or, with a range-based for-loop:
+
+```cpp
+for (auto value : pi) {
+    std::cout << v << '\n';
+}
+```
+
+So you are getting a pair of normal forward iterators wrapped in an iterator
+range object. The iterators can be used with any STL algorithms etc.
 
 Note that the previous only applies to repeated **packed** fields, normal
 repeated fields are handled in the usual way for scalar fields.
 
 
-### Handling Embedded Messages
+### Handling embedded messages
 
 Protocol Buffers can embed any message inside another message. To access an
 embedded message use the `get_message()` function. So for this description:
@@ -203,7 +205,7 @@ message Example3 {
 you can parse with this code:
 
 ```cpp
-protozero::pbf_reader message(input);
+protozero::pbf_reader message{input};
 
 while (message.next(10)) {
     protozero::pbf_reader point = message.get_message();
@@ -224,7 +226,7 @@ while (message.next(10)) {
 }
 ```
 
-### Handling Enums
+### Handling enums
 
 Enums are stored as varints and they can't be differentiated from them. Use
 the `get_enum()` function to get the value of the enum, you have to translate
@@ -276,7 +278,7 @@ This exception indicates an illegal encoding of a varint. It means your input
 data is corrupted in some way.
 
 
-### The `pbf_reader` Class
+### The `pbf_reader` class
 
 The `pbf_reader` class behaves like a value type. Objects are reasonably small
 (two pointers and two `uint32_t`, so 24 bytes on a 64bit system) and they can
@@ -288,7 +290,7 @@ In all cases objects of the `pbf_reader` class store a pointer into the input
 data that was given to the constructor. You have to make sure this pointer
 stays valid for the duration of the objects lifetime.
 
-## Parsing Protobuf-Encoded Messages Using `pbf_message`
+## Parsing protobuf-encoded messages using `pbf_message`
 
 One problem in the code above are the "magic numbers" used as tags for the
 different fields that you got from the `.proto` file. Instead of spreading
@@ -335,7 +337,7 @@ looks somewhat like this, this time using `pbf_message` instead of
 std::string input = get_input_data();
 
 // initialize pbf message with this data
-protozero::pbf_message<Example1> message(input);
+protozero::pbf_message<Example1> message{input};
 
 // iterate over fields in the message
 while (message.next()) {
@@ -379,7 +381,7 @@ for future extension of those messages (and maybe also to detect corrupted
 data). You can switch of this warning with `-Wno-covered-switch-default`).
 
 
-## Writing Protobuf-Encoded Messages
+## Writing protobuf-encoded messages
 
 ### Using `pbf_writer`
 
@@ -393,7 +395,7 @@ The `pbf_writer` class contains asserts that will detect some programming
 errors. We encourage you to compile with asserts enabled in your debug builds.
 
 
-### An Introductory Example
+### An introductory example
 
 Lets say you have a protocol description in a `.proto` file like this:
 
@@ -412,7 +414,7 @@ that looks somewhat like this:
 #include <protozero/pbf_writer.hpp>
 
 std::string data;
-protozero::pbf_writer pbf_example(data);
+protozero::pbf_writer pbf_example{data};
 
 pbf_example.add_uint32(1, 27);       // uint32_t x
 pbf_example.add_fixed64(17, 1);      // fixed64 r
@@ -428,7 +430,7 @@ The buffer doesn't have to be empty, the `pbf_writer` will simply append its
 data to whatever is there already.
 
 
-### Handling Scalar Fields
+### Handling scalar fields
 
 As you could see in the introductory example handling any kind of scalar field
 is easy. The type of field doesn't matter and it doesn't matter whether it is
@@ -445,13 +447,13 @@ For `enum` types you have to use the numeric value as the symbolic names from
 the `.proto` file are not available.
 
 
-### Handling Repeated Packed Fields
+### Handling repeated packed fields
 
 Repeated packed fields can easily be set from a pair of iterators:
 
 ```cpp
 std::string data;
-protozero::pbf_writer pw(data);
+protozero::pbf_writer pw{data};
 
 std::vector<int> v = { 1, 4, 9, 16, 25, 36 };
 pw.add_packed_int32(1, std::begin(v), std::end(v));
@@ -461,7 +463,7 @@ If you don't have an iterator you can use the alternative form:
 
 ```cpp
 std::string data;
-protozero::pbf_writer pw(data);
+protozero::pbf_writer pw{data};
 {
     protozero::packed_field_int32 field{pw, 1};
     field.add_element(1);
@@ -484,7 +486,7 @@ fixed length elements, you can tell Protozero and it can optimize this case:
 
 ```cpp
 std::string data;
-protozero::pbf_writer pw(data);
+protozero::pbf_writer pw{data};
 {
     protozero::packed_field_fixed32 field{pw, 1, 2}; // exactly two elements
     field.add_element(42);
@@ -504,7 +506,7 @@ calling `rollback()`:
 
 ```cpp
 std::string data;
-protozero::pbf_writer pw(data);
+protozero::pbf_writer pw{data};
 {
     protozero::packed_field_int32 field{pw, 1};
     field.add_element(42);
@@ -517,14 +519,14 @@ The result is the same as if the lines inside the nested brackets had never
 been called. Do not try to call `add_element()` after a rollback.
 
 
-### Handling Sub-Messages
+### Handling sub-messages
 
 Nested sub-messages can be handled by first creating the submessage and then
 adding to the parent message:
 
 ```cpp
 std::string buffer_sub;
-protozero::pbf_writer pbf_sub(buffer_sub);
+protozero::pbf_writer pbf_sub{buffer_sub};
 
 // add fields to sub-message
 pbf_sub.add_...(...);
@@ -533,7 +535,7 @@ pbf_sub.add_...(...);
 // sub-message is finished here
 
 std::string buffer_parent;
-protozero::pbf_writer pbf_parent(buffer_parent);
+protozero::pbf_writer pbf_parent{buffer_parent};
 pbf_parent.add_message(1, buffer_sub);
 ```
 
@@ -543,7 +545,7 @@ Google protobuf library if it doesn't?) there is another way:
 
 ```cpp
 std::string data;
-protozero::pbf_writer pbf_parent(data);
+protozero::pbf_writer pbf_parent{data};
 
 // optionally add fields to parent here
 pbf_parent.add_...(...);
@@ -552,7 +554,7 @@ pbf_parent.add_...(...);
 {
     // create new pbf_writer with parent and the tag (field number)
     // as parameters
-    protozero::pbf_writer pbf_sub(pbf_parent, 1);
+    protozero::pbf_writer pbf_sub{pbf_parent, 1};
 
     // add fields to sub here...
     pbf_sub.add_...(...);
@@ -577,13 +579,13 @@ calling `rollback()`:
 
 ```cpp
 std::string data;
-protozero::pbf_writer pbf_parent(data);
+protozero::pbf_writer pbf_parent{data};
 
 // open a new scope
 {
     // create new pbf_writer with parent and the tag (field number)
     // as parameters
-    protozero::pbf_writer pbf_sub(pbf_parent, 1);
+    protozero::pbf_writer pbf_sub{pbf_parent, 1};
 
     // add fields to sub here...
     pbf_sub.add_...(...);
@@ -600,7 +602,7 @@ The result is the same as if the lines inside the nested brackets had never
 been called. Do not try to call any of the `add_*` functions on the submessage
 after a rollback.
 
-## Writing Protobuf-Encoded Messages Using `pbf_builder`
+## Writing protobuf-encoded messages using `pbf_builder`
 
 Just like the `pbf_message` template class wraps the `pbf_reader` class, there
 is a `pbf_builder` template class wrapping the `pbf_writer` class. It is
